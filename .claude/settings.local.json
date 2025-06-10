@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir:*)",
+      "Bash(touch:*)",
+      "Bash(npm install:*)",
+      "Bash(ls:*)",
+      "Bash(cp:*)",
+      "Bash(brew services:*)",
+      "Bash(docker:*)",
+      "Bash(npm run dev:*)",
+      "Bash(node:*)",
+      "Bash(open:*)",
+      "Bash(curl:*)",
+      "Bash(telnet:*)",
+      "Bash(nc:*)",
+      "Bash(kill:*)",
+      "Bash(npm test)"
+    ],
+    "deny": []
+  }
+}
