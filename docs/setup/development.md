@@ -1,170 +1,263 @@
 # Development Setup Guide
 
+This guide will help you set up the NABH Platform for development.
+
 ## Prerequisites
 
-- Node.js 18 or higher
-- PostgreSQL 14 or higher
-- Git
-- npm or yarn package manager
+1. **Node.js**
+   - Version: 14.x or higher
+   - Download from: [https://nodejs.org/](https://nodejs.org/)
 
-## Local Development Setup
+2. **Docker**
+   - Download Docker Desktop from: [https://www.docker.com/products/docker-desktop/](https://www.docker.com/products/docker-desktop/)
 
-### 1. Clone and Setup Repository
+3. **Git**
+   - Download from: [https://git-scm.com/](https://git-scm.com/)
 
-```bash
-git clone <repository-url>
-cd nabh
-```
+## Initial Setup
 
-### 2. Database Setup
+1. **Clone the Repository**
+   ```bash
+   git clone https://github.com/chatgptnotes/nabh.git
+   cd nabh
+   ```
 
-#### Option A: Local PostgreSQL
-```bash
-# Install PostgreSQL (macOS)
-brew install postgresql
-brew services start postgresql
+2. **Environment Setup**
+   ```bash
+   # Backend environment
+   cd backend
+   cp .env.example .env
+   
+   # Edit .env with your settings:
+   # - Database connection
+   # - JWT secret
+   # - Redis connection (if using)
+   ```
 
-# Create database
-createdb nabh_platform
+## Development Options
 
-# Run schema
-psql -d nabh_platform -f database/schemas/init.sql
+### Option 1: Using Docker (Recommended)
 
-# Add sample data (optional)
-psql -d nabh_platform -f database/seeds/sample_data.sql
-```
+1. **Start all services**
+   ```bash
+   docker-compose up -d
+   ```
 
-#### Option B: Docker
-```bash
-# Start PostgreSQL with Docker
-docker run --name nabh-postgres -e POSTGRES_DB=nabh_platform -e POSTGRES_PASSWORD=password -p 5432:5432 -d postgres:15
+2. **Initialize the database**
+   ```bash
+   # Wait for services to start, then:
+   docker-compose exec postgres psql -U postgres -d nabh_platform -f /docker-entrypoint-initdb.d/init.sql
+   ```
 
-# Run schema
-docker exec -i nabh-postgres psql -U postgres -d nabh_platform < database/schemas/init.sql
-```
+3. **Load sample data (optional)**
+   ```bash
+   docker-compose exec postgres psql -U postgres -d nabh_platform -f /docker-entrypoint-initdb.d/sample_data.sql
+   ```
 
-### 3. Backend Setup
+4. **Access the services**
+   - Frontend: http://localhost:3001
+   - Backend API: http://localhost:3000
+   - PostgreSQL: localhost:5432
+   - Redis: localhost:6379
 
-```bash
-cd backend
+### Option 2: Manual Setup
 
-# Install dependencies
-npm install
+1. **Database Setup**
+   ```bash
+   # Create database
+   createdb nabh_platform
+   
+   # Apply schema
+   psql -d nabh_platform -f database/schemas/medical_schema.sql
+   
+   # Load sample data (optional)
+   psql -d nabh_platform -f database/seeds/sample_data.sql
+   ```
 
-# Copy environment file
-cp .env.example .env
+2. **Backend Setup**
+   ```bash
+   cd backend
+   npm install
+   npm run dev
+   ```
 
-# Edit .env file with your database credentials
-# DB_HOST=localhost
-# DB_PORT=5432
-# DB_NAME=nabh_platform
-# DB_USER=postgres
-# DB_PASSWORD=password
-
-# Start development server
-npm run dev
-```
-
-The backend will be available at `http://localhost:3000`
-
-### 4. Frontend Setup
-
-```bash
-cd frontend
-
-# Install dependencies
-npm install
-
-# Start development server
-npm run dev
-```
-
-The frontend will be available at `http://localhost:3001`
+3. **Frontend Setup**
+   ```bash
+   cd frontend
+   npm install
+   npm run dev
+   ```
 
 ## Development Workflow
 
-### Running Tests
+### Frontend Development
+
+1. **Start development server**
+   ```bash
+   cd frontend
+   npm run dev
+   ```
+
+2. **Run tests**
+   ```bash
+   npm test
+   ```
+
+3. **Build for production**
+   ```bash
+   npm run build
+   ```
+
+### Backend Development
+
+1. **Start development server**
+   ```bash
+   cd backend
+   npm run dev
+   ```
+
+2. **Run tests**
+   ```bash
+   npm test
+   ```
+
+3. **Lint code**
+   ```bash
+   npm run lint
+   ```
+
+## Database Management
+
+### Working with Schemas
+
+The database schemas are located in `database/schemas/`:
+- `medical_schema.sql`: Main schema for medical data
+- `init.sql`: Initial database setup
+
+### Sample Data
+
+Sample data is available in `database/seeds/sample_data.sql`
+
+## Testing
+
+### Frontend Testing
 
 ```bash
-# Backend tests
-cd backend
-npm test
-
-# Frontend tests
 cd frontend
 npm test
 ```
 
-### Code Quality
+### Backend Testing
 
 ```bash
-# Lint backend code
 cd backend
-npm run lint
-
-# Lint frontend code
-cd frontend
-npm run lint
+npm test
 ```
 
-### Database Migrations
+## Common Issues and Solutions
 
-When making schema changes:
+### Backend Issues
 
-1. Create new migration file in `database/migrations/`
-2. Update the main schema in `database/schemas/init.sql`
-3. Test locally before committing
+1. **Database Connection Failed**
+   - Check PostgreSQL service is running
+   - Verify database credentials in `.env`
+   - Ensure database exists
 
-## Docker Development (Alternative)
+2. **Redis Connection Failed**
+   - Check Redis service is running
+   - Verify Redis connection string
 
-For a complete containerized setup:
+### Frontend Issues
+
+1. **API Connection Failed**
+   - Check backend service is running
+   - Verify API URL in frontend configuration
+   - Check CORS settings
+
+2. **Build Errors**
+   - Clear node_modules and reinstall
+   - Update dependencies
+   - Check for TypeScript errors
+
+## Docker Commands
+
+### Common Commands
 
 ```bash
-# Build and start all services
-docker-compose up --build
+# Start services
+docker-compose up -d
 
-# Backend: http://localhost:3000
-# Frontend: http://localhost:3001
-# PostgreSQL: localhost:5432
+# Stop services
+docker-compose down
+
+# View logs
+docker-compose logs -f
+
+# Rebuild services
+docker-compose build
+
+# Restart a specific service
+docker-compose restart [service_name]
 ```
 
-## Troubleshooting
+### Container Management
 
-### Database Connection Issues
-- Ensure PostgreSQL is running
-- Check credentials in `.env` file
-- Verify database exists
+```bash
+# Access container shell
+docker-compose exec [service_name] sh
 
-### Port Conflicts
-- Change ports in `.env` files if 3000/3001 are in use
-- Update docker-compose.yml port mappings
+# View container status
+docker-compose ps
 
-### Node.js Version Issues
-- Use Node.js 18 or higher
-- Consider using nvm to manage Node versions
-
-## Environment Variables
-
-### Backend (.env)
-```
-NODE_ENV=development
-PORT=3000
-DB_HOST=localhost
-DB_PORT=5432
-DB_NAME=nabh_platform
-DB_USER=postgres
-DB_PASSWORD=password
-JWT_SECRET=your-super-secret-key
+# Remove containers and volumes
+docker-compose down -v
 ```
 
-### Frontend (.env)
-```
-VITE_API_URL=http://localhost:3000
-```
+## IDE Setup
 
-## Next Steps
+### VS Code
 
-1. Set up your IDE with ESLint and Prettier
-2. Configure git hooks for code quality
-3. Review the API documentation in `docs/api/`
-4. Check out the user guide in `docs/user-guide/`
+Recommended extensions:
+- ESLint
+- Prettier
+- Docker
+- PostgreSQL
+
+### Configuration
+
+1. **ESLint Configuration**
+   ```json
+   {
+     "editor.codeActionsOnSave": {
+       "source.fixAll.eslint": true
+     }
+   }
+   ```
+
+2. **Prettier Configuration**
+   ```json
+   {
+     "editor.formatOnSave": true,
+     "prettier.singleQuote": true
+   }
+   ```
+
+## Git Workflow
+
+1. **Create feature branch**
+   ```bash
+   git checkout -b feature/your-feature
+   ```
+
+2. **Make changes and commit**
+   ```bash
+   git add .
+   git commit -m "Description of changes"
+   ```
+
+3. **Push changes**
+   ```bash
+   git push origin feature/your-feature
+   ```
+
+4. Create Pull Request on GitHub
